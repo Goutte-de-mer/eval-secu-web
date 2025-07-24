@@ -19,6 +19,11 @@ app.use(
     secret: "notsecure",
     resave: false,
     saveUninitialized: true,
+    cookie: {
+      secure: false, //true en prod
+      httpOnly: true,
+      sameSite: "strict",
+    },
   })
 );
 const csurf = require("csurf");

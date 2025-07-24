@@ -4,9 +4,27 @@
   <button type="submit">Envoyer</button>
 </form>
 
+<% if (errors && errors.length > 0) { %>
+<div
+  style="
+    color: red;
+    background: #ffe6e6;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid red;
+  "
+>
+  <ul style="margin: 0; padding-left: 20px">
+    <% errors.forEach(function(error) { %>
+    <li><%= error.msg %></li>
+    <% }) %>
+  </ul>
+</div>
+<% } %>
+
 <h3>Messages :</h3>
 <ul>
   <% messages.forEach(function(msg) { %>
-    <li><%= msg %></li>
+  <li><%= msg %></li>
   <% }) %>
 </ul>

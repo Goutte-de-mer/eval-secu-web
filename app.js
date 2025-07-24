@@ -39,11 +39,11 @@ app.get("/csrf-token", csrfProtection, (req, res) => {
 });
 
 // Page de login
-app.get("/", (req, res) => {
-  res.render("login");
+app.get("/", csrfProtection, (req, res) => {
+  res.render("login", { csrfToken: req.csrfToken() });
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", csrfProtection, (req, res) => {
   const { username, password } = req.body;
 
   const user = users.find(
@@ -53,38 +53,57 @@ app.post("/login", (req, res) => {
     req.session.user = user;
     res.redirect("/dashboard");
   } else {
-    res.send("Login failed");
+    res.render("login", {
+      error: "Login failed",
+      csrfToken: req.csrfToken(),
+    });
   }
 });
 
-app.get("/contact", (req, res) => {
+app.get("/contact", csrfProtection, (req, res) => {
   const errors = req.session.validationErrors || [];
   delete req.session.validationErrors;
-  res.render("contact", { messages, errors });
+  res.render("contact", {
+    messages,
+    errors,
+    csrfToken: req.csrfToken(),
+  });
 });
 
-app.post("/contact", contactValidations, handleValidationErrors, (req, res) => {
-  const { message } = req.body;
-  messages.push(message);
-  res.redirect("/contact");
-});
+app.post(
+  "/contact",
+  csrfProtection,
+  contactValidations,
+  handleValidationErrors,
+  (req, res) => {
+    const { message } = req.body;
+    messages.push(message);
+    res.redirect("/contact");
+  }
+);
 
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) return res.redirect("/");
-  const userId = parseInt(req.query.id || req.session.user.id);
+  const userId = parseInt(req.session.user.id);
   const user = users.find((u) => u.id === userId);
   res.render("dashboard", { user });
 });
 
-app.get("/edit-profile", (req, res) => {
+app.get("/edit-profile", csrfProtection, (req, res) => {
   if (!req.session.user) return res.redirect("/");
-  res.render("edit");
+  res.render("edit", {
+    user: req.session.user,
+    csrfToken: req.csrfToken(),
+  });
 });
 
 app.post("/edit-profile", csrfProtection, (req, res) => {
   if (!req.session.user) return res.redirect("/");
   const user = users.find((u) => u.id === req.session.user.id);
-  user.username = req.body.username;
+  if (user) {
+    user.username = req.body.username;
+    req.session.user = user;
+  }
   res.redirect("/dashboard");
 });
 
